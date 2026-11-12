@@ -232,7 +232,26 @@ dl.facts dd{margin:0;font-variant-numeric:tabular-nums}
 .ring .big small{display:block;font-size:14px;margin-top:2px}
 .rev{border-left-width:6px}
 
+/* one question at a time */
+.qn{color:var(--muted)}
+.qn:not(.ans){border-style:dashed}
+.qn.ans{color:var(--accent)}
+.qn.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--ink)}
+.legend{gap:7px;font-size:13px}
+.lg{display:inline-block;width:15px;height:15px;border-radius:4px;border:1px dashed var(--muted);background:var(--surface);margin-right:9px;vertical-align:-3px;position:relative}
+.lg.ans{background:var(--accent-soft);border:1px solid var(--accent)}
+.lg.flag{border:1px dashed var(--muted)}
+.lg.flag::after{content:"";position:absolute;top:-1px;right:-1px;border:5px solid transparent;border-top-color:var(--flag);border-right-color:var(--flag)}
+.lg.cur{box-shadow:0 0 0 2px var(--surface),0 0 0 3.5px var(--ink)}
+.qb{padding:22px 24px 26px}
+.stem{font-size:17.5px;margin-bottom:14px}
+.part{margin-top:0}
+.pager{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:4px}
+.pager .btn{min-width:120px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.side{max-height:calc(100vh - env(safe-area-inset-top,0px) - 96px);overflow-y:auto}
 @media (max-width:900px){
+  .pager .btn{min-width:0;flex:1}.pager .xstat{display:none}
   .row{grid-template-columns:auto minmax(0,1fr)}
   .row>:last-child{grid-column:1/-1}
   .hero{padding:22px 18px 40px}
@@ -434,30 +453,45 @@ function startExam(n,fresh){
   if(fresh)delete state.progress[n];
   const p=state.progress[n];
   run=p?Object.assign({},p,{n,t0:Date.now()}):newRun(n);
+  run.cur=Math.min(QS.length,Math.max(1,run.cur||1));
   view={name:'take',exam:n};renderTake();window.scrollTo(0,0)
 }
 const elapsed=()=>run.base+(Date.now()-run.t0);
-function persist(){if(!run)return;run.base=elapsed();run.t0=Date.now();state.progress[run.n]={answers:run.answers,flags:run.flags,order:run.order,base:run.base};save()}
+function persist(){if(!run)return;run.base=elapsed();run.t0=Date.now();state.progress[run.n]={answers:run.answers,flags:run.flags,order:run.order,base:run.base,cur:run.cur};save()}
 const answeredQ=q=>{const a=run.answers[q.id];return isFill(q,EXAMS[run.n-1])?Array.isArray(a)&&a.some(x=>(x||'').trim()):typeof a==='number'}
-function navHTML(){return `<div class="qnav">${QS.map(q=>`<button type="button" class="qn ${answeredQ(q)?'ans':''} ${run.flags[q.id]?'flag':''}" data-nav="${q.id}" aria-label="Go to question ${q.id}${answeredQ(q)?', answered':''}${run.flags[q.id]?', flagged':''}">${q.id}</button>`).join('')}</div>`}
-const legend=`<div class="legend"><span>Blue: answered</span><span>Orange corner: flagged</span></div>`;
+function navHTML(){return `<div class="qnav">${QS.map(q=>`<button type="button" class="qn" data-nav="${q.id}">${q.id}</button>`).join('')}</div>`}
+const legend=`<div class="legend"><span><i class="lg ans"></i>Answered</span><span><i class="lg"></i>Not answered</span><span><i class="lg flag"></i>Flagged for review</span><span><i class="lg cur"></i>Current question</span></div>`;
+function questionHTML(q){
+  const fill=isFill(q,EXAMS[run.n-1]),a=run.answers[q.id],last=q.id===QS.length;
+  return `<div class="part s-${q.sec}">${esc(SECTION_TITLE[q.sec])}</div>
+  <section class="card q s-${q.sec}" id="q-${q.id}" aria-labelledby="qt-${q.id}"><div class="qh"><div><b id="qt-${q.id}">Question ${q.id}</b><span class="pts">1 pt</span></div><button type="button" class="flagbtn ${run.flags[q.id]?'on':''}" data-flag="${q.id}" aria-pressed="${!!run.flags[q.id]}">${run.flags[q.id]?'⚑ Flagged':'⚐ Flag'}</button></div>
+  <div class="qb"><p class="stem">${esc(q.p)}</p>${fill?inputsHTML(q,Array.isArray(a)?a:[],null,false):mcHTML(q,run.order[q.id],a,false)}</div></section>
+  <div class="pager"><button type="button" class="btn" data-step="-1"${q.id===1?' disabled':''}>← Previous</button><span class="xstat">Question ${q.id} of ${QS.length}</span>${last?`<button type="button" class="btn pri" data-act="submit">Submit exam</button>`:`<button type="button" class="btn pri" data-step="1">Next →</button>`}</div>`
+}
+function showQ(id){
+  id=Math.min(QS.length,Math.max(1,id));run.cur=id;
+  document.getElementById('qarea').innerHTML=questionHTML(QS[id-1]);
+  refreshStatus();clearTimeout(saveT);saveT=setTimeout(persist,400);
+  window.scrollTo(0,0);
+  const f=document.querySelector('#qarea .blank');if(f&&window.matchMedia('(pointer:fine)').matches)f.focus({preventScroll:true})
+}
 function renderTake(){
-  const e=EXAMS[run.n-1];let cur='';
-  const qh=QS.map(q=>{
-    let h='';if(q.sec!==cur){cur=q.sec;h+=`<div class="part s-${q.sec}">${esc(SECTION_TITLE[q.sec])}</div>`}
-    const fill=isFill(q,e),a=run.answers[q.id];
-    h+=`<section class="card q s-${q.sec}" id="q-${q.id}" aria-labelledby="qt-${q.id}"><div class="qh"><div><b id="qt-${q.id}">Question ${q.id}</b><span class="pts">1 pt</span></div><button type="button" class="flagbtn ${run.flags[q.id]?'on':''}" data-flag="${q.id}" aria-pressed="${!!run.flags[q.id]}">${run.flags[q.id]?'⚑ Flagged':'⚐ Flag'}</button></div>
-    <div class="qb"><p class="stem">${esc(q.p)}</p>${fill?inputsHTML(q,Array.isArray(a)?a:[],null,false):mcHTML(q,run.order[q.id],a,false)}</div></section>`;return h}).join('');
-  shell(`<div class="xbar"><h2>Exam ${run.n}: ${esc(e.name)}</h2><span class="xstat">Time <b id="timer">0:00</b></span><span class="xstat"><b id="cnt">0</b> of ${QS.length} answered</span><button class="btn pri" data-act="submit">Submit exam</button><div class="prog" aria-hidden="true"><i id="progfill"></i></div></div>
+  const e=EXAMS[run.n-1];
+  shell(`<div class="xbar"><h2>Exam ${run.n}: ${esc(e.name)}</h2><span class="xstat">Time <b id="timer">0:00</b></span><span class="xstat"><b id="cnt">0</b> of ${QS.length} answered</span><span class="xstat"><b id="flc">0</b> flagged</span><button class="btn pri" data-act="submit">Submit exam</button><div class="prog" aria-hidden="true"><i id="progfill"></i></div></div>
   <div id="confirm" class="confirm" hidden></div>
   <details class="card mobnav"><summary>Question navigator</summary>${navHTML()}${legend}</details>
-  <div class="xgrid"><div>${qh}<div class="actions"><button class="btn pri" data-act="submit">Submit exam</button></div></div>
+  <div class="xgrid"><div id="qarea">${questionHTML(QS[run.cur-1])}</div>
   <aside class="card side" aria-label="Question navigator"><h3>Questions</h3>${navHTML()}${legend}</aside></div>`);
-  refreshStatus();clearInterval(timerId);tick();timerId=setInterval(tick,1000)
+  refreshStatus();clearInterval(timerId);tick();timerId=setInterval(tick,1000);
+  const f0=document.querySelector('#qarea .blank');if(f0&&window.matchMedia('(pointer:fine)').matches)f0.focus({preventScroll:true})
 }
 function tick(){const t=document.getElementById('timer');if(t&&run)t.textContent=fmtTime(elapsed())}
 function refreshStatus(){
-  document.querySelectorAll('.qn').forEach(b=>{const q=QS[b.dataset.nav-1];b.classList.toggle('ans',answeredQ(q));b.classList.toggle('flag',!!run.flags[q.id])});
+  document.querySelectorAll('.qn').forEach(b=>{const q=QS[b.dataset.nav-1],an=answeredQ(q),fl=!!run.flags[q.id],cu=q.id===run.cur;
+    b.classList.toggle('ans',an);b.classList.toggle('flag',fl);b.classList.toggle('cur',cu);
+    b.setAttribute('aria-label','Question '+q.id+': '+(an?'answered':'not answered')+(fl?', flagged':'')+(cu?', current':''));
+    if(cu)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current')});
+  const fc=document.getElementById('flc');if(fc)fc.textContent=Object.keys(run.flags).filter(k=>run.flags[k]).length;
   const done=QS.filter(answeredQ).length;
   const c=document.getElementById('cnt');if(c)c.textContent=done;
   const pf=document.getElementById('progfill');if(pf)pf.style.width=(done/QS.length*100)+'%'
@@ -465,7 +499,7 @@ function refreshStatus(){
 function showConfirm(){
   const un=QS.filter(q=>!answeredQ(q)),fl=Object.keys(run.flags).filter(k=>run.flags[k]).length;
   const el=document.getElementById('confirm');
-  el.innerHTML=`<p><b>Ready to submit?</b> ${un.length?`${un.length} question${un.length>1?'s are':' is'} unanswered${un.length<=12?' (number'+(un.length>1?'s':'')+' '+un.map(q=>q.id).join(', ')+')':''}.`:'Every question has an answer.'}${fl?` ${fl} flagged.`:''} You cannot change answers after submitting.</p><button class="btn" data-act="cancel">Keep working</button><button class="btn pri" data-act="confirm">Submit now</button>`;
+  el.innerHTML=`<p><b>Ready to submit?</b> ${un.length?`${un.length} question${un.length>1?'s are':' is'} unanswered${un.length<=12?' (number'+(un.length>1?'s':'')+' '+un.map(q=>q.id).join(', ')+')':''}.`:'Every question has an answer.'}${fl?` ${fl} flagged.`:''} You cannot change answers after submitting.</p>${un.length?`<button class="btn" data-goto="${un[0].id}">Go to first unanswered</button>`:''}<button class="btn" data-act="cancel">Keep working</button><button class="btn pri" data-act="confirm">Submit now</button>`;
   el.hidden=false
 }
 function submit(){
@@ -511,13 +545,16 @@ root.addEventListener('change',ev=>{
 });
 root.addEventListener('keydown',ev=>{
   if(ev.key==='Enter'&&ev.target.classList&&ev.target.classList.contains('blank')&&run){
-    ev.preventDefault();const all=[...document.querySelectorAll('.blank')];const i=all.indexOf(ev.target);if(all[i+1])all[i+1].focus()
+    ev.preventDefault();const all=[...document.querySelectorAll('#qarea .blank')];const i=all.indexOf(ev.target);
+    if(all[i+1])all[i+1].focus();else if(run.cur<QS.length)showQ(run.cur+1)
   }
 });
 root.addEventListener('click',ev=>{
-  const el=ev.target.closest('[data-act],[data-flag],[data-nav],[data-filter]');if(!el)return;
+  const el=ev.target.closest('[data-act],[data-flag],[data-nav],[data-filter],[data-step],[data-goto]');if(!el||el.disabled)return;
+  if(el.dataset.step&&run){showQ(run.cur+(+el.dataset.step));return}
+  if(el.dataset.goto&&run){document.getElementById('confirm').hidden=true;showQ(+el.dataset.goto);return}
   if(el.dataset.flag&&run){const id=+el.dataset.flag;run.flags[id]=!run.flags[id];el.classList.toggle('on',run.flags[id]);el.setAttribute('aria-pressed',String(!!run.flags[id]));el.textContent=run.flags[id]?'⚑ Flagged':'⚐ Flag';refreshStatus();persist();return}
-  if(el.dataset.nav){const t=document.getElementById('q-'+el.dataset.nav);if(t){t.scrollIntoView({behavior:'smooth',block:'start'});const f=t.querySelector('input');if(f)setTimeout(()=>f.focus({preventScroll:true}),350)}return}
+  if(el.dataset.nav&&run){const d=el.closest('details');if(d)d.open=false;showQ(+el.dataset.nav);return}
   if(el.dataset.filter&&view.name==='results'){showResults(view.exam,view.att,el.dataset.filter);return}
   const act=el.dataset.act;
   if(act==='start')startExam(+el.dataset.n,!!el.dataset.fresh);
