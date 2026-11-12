@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>World Lit Exam Prep</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Serif+4:wght@600;700&display=swap">
+<style>
+/* Layout: dark course rail on the left, white work surface on the right, sticky exam bar + question navigator while taking an exam. */
+:root{
+  --bg:#eef1f4; --surface:#ffffff; --ink:#1d2933; --muted:#586775; --line:#d3dbe2;
+  --rail:#243240; --rail-ink:#e4ebf1; --rail-dim:#9fb0be; --rail-on:#33475a;
+  --accent:#1b6aa0; --accent-ink:#ffffff; --accent-soft:#e3f0f9;
+  --good:#17703c; --good-bg:#e2f4e9; --bad:#b0251d; --bad-bg:#fcebe8;
+  --warn:#7c5200; --warn-bg:#fff2d2; --flag:#c2410c; --focus:#1b6aa0;
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-head:'Source Serif 4',Georgia,'Times New Roman',serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#12181e; --surface:#1b242d; --ink:#e6edf3; --muted:#9aabb8; --line:#2d3a46;
+  --rail:#0d1318; --rail-ink:#dbe4ec; --rail-dim:#8396a6; --rail-on:#1d2a35;
+  --accent:#5db3e8; --accent-ink:#0a1621; --accent-soft:#18303f;
+  --good:#5fc48a; --good-bg:#15301f; --bad:#ff8f86; --bad-bg:#3b1d1b;
+  --warn:#f0c35c; --warn-bg:#33290f; --flag:#ff9c66; --focus:#5db3e8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#12181e; --surface:#1b242d; --ink:#e6edf3; --muted:#9aabb8; --line:#2d3a46;
+  --rail:#0d1318; --rail-ink:#dbe4ec; --rail-dim:#8396a6; --rail-on:#1d2a35;
+  --accent:#5db3e8; --accent-ink:#0a1621; --accent-soft:#18303f;
+  --good:#5fc48a; --good-bg:#15301f; --bad:#ff8f86; --bad-bg:#3b1d1b;
+  --warn:#f0c35c; --warn-bg:#33290f; --flag:#ff9c66; --focus:#5db3e8; color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--font-ui);-webkit-font-smoothing:antialiased}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:60;background:var(--rail)}
+a{color:var(--accent)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+h1,h2,h3{font-family:var(--font-head);margin:0;text-wrap:balance;line-height:1.2}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh}
+.rail{background:var(--rail);color:var(--rail-ink);position:sticky;top:0;align-self:start;height:100vh;overflow-y:auto;padding-block:20px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:16px}
+.brand{display:block;text-decoration:none;color:inherit;padding:4px 8px 18px;border-bottom:1px solid rgba(255,255,255,.12);margin-bottom:12px}
+.brand-t{display:block;font:700 18px/1.2 var(--font-head)}
+.brand-s{display:block;font-size:12px;color:var(--rail-dim);margin-top:4px;letter-spacing:.06em;text-transform:uppercase}
+.rail nav{display:flex;flex-direction:column;gap:2px}
+.rail nav a{display:flex;justify-content:space-between;align-items:center;gap:8px;color:var(--rail-ink);text-decoration:none;padding:9px 10px;border-radius:6px;font-weight:500}
+.rail nav a:hover{background:var(--rail-on)}
+.rail nav a.on{background:var(--rail-on);box-shadow:inset 3px 0 0 var(--accent)}
+.pill{font-size:12px;font-weight:600;padding:1px 8px;border-radius:99px;background:rgba(255,255,255,.12);color:var(--rail-ink);font-variant-numeric:tabular-nums}
+.pill.done{background:var(--good-bg);color:var(--good)}
+
+.main{min-width:0;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1040px;margin:0 auto}
+.crumbs{font-size:13px;color:var(--muted);margin-bottom:10px}
+.crumbs a{color:var(--muted)}
+.page-h{font-size:30px;margin-bottom:6px}
+.lede{color:var(--muted);max-width:68ch;margin:0 0 22px}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px}
+.list{overflow:hidden}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:14px 20px;align-items:center;padding:18px 20px;border-top:1px solid var(--line)}
+.row:first-child{border-top:0}
+.row h3{font-size:19px}
+.row h3 a{text-decoration:none;color:var(--ink)}
+.row h3 a:hover{color:var(--accent);text-decoration:underline}
+.meta{color:var(--muted);font-size:13.5px;margin-top:4px}
+.ladder{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:12.5px;color:var(--muted)}
+.bar{flex:0 1 260px;height:8px;border-radius:99px;background:var(--accent-soft);overflow:hidden;min-width:90px}
+.bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+.score-tag{font-variant-numeric:tabular-nums;font-weight:600;font-size:13px;padding:3px 10px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.score-tag.hi{background:var(--good-bg);color:var(--good)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:8px 16px;border-radius:6px;font-weight:600;cursor:pointer;text-decoration:none;min-height:38px}
+.btn:hover{background:var(--accent-soft)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.pri:hover{filter:brightness(1.08);background:var(--accent)}
+.btn.sm{padding:4px 10px;min-height:30px;font-size:13px}
+
+.detail{padding:24px}
+.detail h2{font-size:22px;margin:22px 0 8px}
+.detail h2:first-child{margin-top:0}
+dl.facts{display:grid;grid-template-columns:max-content 1fr;gap:8px 24px;margin:0}
+dl.facts dt{color:var(--muted)}
+dl.facts dd{margin:0;font-variant-numeric:tabular-nums}
+.tbl{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.tbl th,.tbl td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+.tbl th{font-size:12.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.scroll-x{overflow-x:auto}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+.callout{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:10px 14px;font-size:14px;margin:14px 0 0}
+
+/* taking an exam */
+.xbar{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 14px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;margin-bottom:16px}
+.xbar h2{font-size:17px;flex:1 1 200px;min-width:0}
+.xstat{font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.xstat b{color:var(--ink)}
+.confirm{position:sticky;top:calc(env(safe-area-inset-top,0px) + 64px);z-index:39;background:var(--warn-bg);color:var(--ink);border:1px solid var(--warn);border-radius:8px;padding:12px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center}
+.confirm[hidden]{display:none}
+.confirm p{margin:0;flex:1 1 240px}
+.xgrid{display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:20px;align-items:start}
+.side{position:sticky;top:calc(env(safe-area-inset-top,0px) + 76px);padding:14px}
+.side h3{font-family:var(--font-ui);font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:10px}
+.qnav{display:grid;grid-template-columns:repeat(auto-fill,minmax(36px,1fr));gap:6px}
+.qn{height:34px;border-radius:5px;border:1px solid var(--line);background:var(--surface);cursor:pointer;font-weight:600;font-size:13px;font-variant-numeric:tabular-nums;position:relative}
+.qn.ans{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.qn.flag::after{content:"";position:absolute;top:2px;right:2px;border:5px solid transparent;border-top-color:var(--flag);border-right-color:var(--flag)}
+.legend{margin-top:12px;font-size:12.5px;color:var(--muted);display:grid;gap:4px}
+.mobnav{display:none;margin-bottom:14px;padding:10px 14px}
+.mobnav summary{cursor:pointer;font-weight:600}
+.mobnav .qnav{margin-top:10px}
+.part{font:700 13px/1 var(--font-ui);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:26px 0 10px;display:flex;align-items:center;gap:12px}
+.part::after{content:"";flex:1;height:1px;background:var(--line)}
+.part:first-child{margin-top:0}
+.q{margin-bottom:14px;scroll-margin-top:150px;overflow:hidden}
+.qh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--line);background:color-mix(in srgb,var(--bg) 55%,var(--surface))}
+.qh b{font-size:14px}
+.qh .pts{color:var(--muted);font-size:13px;margin-left:8px;font-variant-numeric:tabular-nums}
+.flagbtn{background:none;border:1px solid transparent;border-radius:5px;padding:3px 8px;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500}
+.flagbtn:hover{border-color:var(--line)}
+.flagbtn.on{color:var(--flag);border-color:var(--flag);font-weight:600}
+.qb{padding:16px 18px 18px}
+.stem{font-weight:600;margin:0 0 10px;font-size:15.5px}
+.tline{margin:7px 0;line-height:2.1}
+.blank{font:inherit;width:9ch;min-width:9ch;max-width:100%;padding:2px 6px;margin:0 3px;border:0;border-bottom:2px solid var(--muted);border-radius:3px 3px 0 0;background:color-mix(in srgb,var(--accent-soft) 55%,var(--surface));color:var(--ink);text-align:center}
+.blank:focus{outline:none;border-bottom-color:var(--accent);background:var(--accent-soft)}
+.blank:focus-visible{outline:2px solid var(--focus);outline-offset:1px}
+.blank.ok{border-bottom-color:var(--good);background:var(--good-bg);color:var(--good);font-weight:600}
+.blank.bad{border-bottom-color:var(--bad);background:var(--bad-bg);color:var(--bad);font-weight:600}
+.mk{font-size:12.5px;font-weight:700;margin-right:2px}
+.mk.ok{color:var(--good)} .mk.bad{color:var(--bad)}
+.opts{display:grid;gap:8px;margin-top:4px}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--surface)}
+.opt:hover{border-color:var(--accent)}
+.opt input{margin-top:4px;accent-color:var(--accent);flex:none}
+.opt span{white-space:pre-line;min-width:0;overflow-wrap:anywhere}
+.opt:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.opt.ok{border-color:var(--good);background:var(--good-bg)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.opt em{font-style:normal;font-size:12px;font-weight:700;margin-left:6px}
+.opt.ok em{color:var(--good)} .opt.bad em{color:var(--bad)}
+.opt.static{cursor:default}
+.opt.static:hover{border-color:var(--line)}
+.opt.ok.static:hover{border-color:var(--good)} .opt.bad.static:hover{border-color:var(--bad)}
+
+/* results */
+.sum{padding:24px;display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px 32px;align-items:center}
+.big{font:700 46px/1 var(--font-head);font-variant-numeric:tabular-nums}
+.big small{font:500 16px var(--font-ui);color:var(--muted)}
+.secs{display:grid;gap:8px}
+.sec{display:grid;grid-template-columns:100px minmax(0,1fr) 64px;gap:10px;align-items:center;font-size:13.5px;font-variant-numeric:tabular-nums}
+.sec .bar{flex:1;flex-basis:auto}
+.filters{display:flex;gap:8px;margin:22px 0 12px;flex-wrap:wrap;align-items:center}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:99px;padding:5px 14px;font-weight:600;cursor:pointer;font-size:13.5px}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.rev{border-left:5px solid var(--line)}
+.rev.ok{border-left-color:var(--good)} .rev.bad{border-left-color:var(--bad)} .rev.part2{border-left-color:var(--warn)}
+.status{font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:99px}
+.status.ok{background:var(--good-bg);color:var(--good)} .status.bad{background:var(--bad-bg);color:var(--bad)} .status.part2{background:var(--warn-bg);color:var(--warn)}
+.key{margin-top:12px;padding:10px 14px;border-radius:6px;background:var(--good-bg);color:var(--ink);font-size:14.5px}
+.key b{color:var(--good);display:block;font-size:12px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px}
+.key div{white-space:pre-line}
+.note{margin-top:10px;font-size:13.5px;color:var(--warn);background:var(--warn-bg);padding:8px 12px;border-radius:6px}
+
+@media (max-width:900px){
+  .app{grid-template-columns:minmax(0,1fr)}
+  .rail{position:static;height:auto;padding-block:12px;padding-right:max(16px,env(safe-area-inset-right,0px))}
+  .brand{border:0;padding-bottom:8px;margin-bottom:0}
+  .rail nav{flex-direction:row;flex-wrap:wrap;gap:6px}
+  .rail nav a{padding:6px 10px;background:var(--rail-on)}
+  .xgrid{grid-template-columns:minmax(0,1fr)}
+  .side{display:none}
+  .mobnav{display:block}
+  .sum{grid-template-columns:minmax(0,1fr)}
+  .row{grid-template-columns:minmax(0,1fr)}
+  .page-h{font-size:25px}
+  .sec{grid-template-columns:78px minmax(0,1fr) 54px}
+  .confirm{top:calc(env(safe-area-inset-top,0px) + 112px)}
+}
+@media (prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+
+/* ---- visual pass: indigo and gold, one color per author, rings for progress ---- */
+:root{--bg:#eceff6;--surface:#ffffff;--ink:#1b2038;--muted:#5a6285;--line:#d5daeb;--rail:#181e42;--rail-on:#283263;--rail-dim:#a4aed6;--accent:#2a5bb0;--accent-soft:#e5ecfa;--gold:#a9771a;
+  --shadow:0 1px 2px rgba(24,30,66,.06),0 8px 24px rgba(24,30,66,.07);
+  --c-Virgil:#b98a22;--c-Ovid:#1b8189;--c-Augustine:#7b4ca6;--c-Dante:#b8382f;
+  --meander:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='14' viewBox='0 0 16 14'%3E%3Cpath d='M0 13h16M0 13V1h14v9H5V5h5' fill='none' stroke='%23d9b45a' stroke-width='1.5'/%3E%3C/svg%3E")}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0e1124;--surface:#181d3b;--ink:#e8ebf8;--muted:#a1a9d0;--line:#2a3262;--rail:#0a0d1f;--rail-on:#1a2247;--rail-dim:#8f99c4;--accent:#7ba8f0;--accent-soft:#1f2b57;--gold:#e5b95a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --c-Virgil:#e5b95a;--c-Ovid:#5ccdd4;--c-Augustine:#bb98e6;--c-Dante:#ff9088}}
+:root[data-theme="dark"]{--bg:#0e1124;--surface:#181d3b;--ink:#e8ebf8;--muted:#a1a9d0;--line:#2a3262;--rail:#0a0d1f;--rail-on:#1a2247;--rail-dim:#8f99c4;--accent:#7ba8f0;--accent-soft:#1f2b57;--gold:#e5b95a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.35);
+  --c-Virgil:#e5b95a;--c-Ovid:#5ccdd4;--c-Augustine:#bb98e6;--c-Dante:#ff9088}
+.s-Virgil{--sc:var(--c-Virgil)} .s-Ovid{--sc:var(--c-Ovid)} .s-Augustine{--sc:var(--c-Augustine)} .s-Dante{--sc:var(--c-Dante)}
+
+.main{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 10%,var(--bg)),var(--bg) 380px)}
+.card{border-radius:12px;box-shadow:var(--shadow)}
+.btn{border-radius:8px}
+.btn.pri{box-shadow:0 2px 8px color-mix(in srgb,var(--accent) 35%,transparent)}
+.page-h{font-size:32px}
+.brand::before{content:"";display:block;height:14px;margin-bottom:16px;background:var(--meander) repeat-x;opacity:.7}
+.brand-t{font-size:20px}
+
+.hero{position:relative;overflow:hidden;color:#fff;border-radius:16px;padding:30px 30px 46px;margin-bottom:22px;background:radial-gradient(110% 150% at 100% 0%,#4a74cf 0,transparent 55%),linear-gradient(135deg,#161c3f,#23397a);box-shadow:var(--shadow)}
+.hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:14px;background:var(--meander) repeat-x;opacity:.6}
+.hero .crumbs{color:rgba(255,255,255,.72);letter-spacing:.1em;text-transform:uppercase;font-size:12px;font-weight:600}
+.hero h1{font-size:42px;color:#fff;margin-bottom:10px}
+.hero p{color:rgba(255,255,255,.84);max-width:60ch;margin:0 0 18px}
+.authors{display:flex;flex-wrap:wrap;gap:8px}
+.au{display:inline-flex;align-items:center;gap:8px;padding:5px 13px;border-radius:99px;background:rgba(255,255,255,.13);font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.au i{width:9px;height:9px;border-radius:50%;background:var(--sc)}
+
+.row{grid-template-columns:auto minmax(0,1fr) auto;padding:20px 22px;transition:background .15s}
+.row:hover{background:color-mix(in srgb,var(--accent-soft) 45%,var(--surface))}
+.rn{width:58px;height:58px;border-radius:50%;background:conic-gradient(var(--accent) var(--p),var(--accent-soft) 0);display:grid;place-items:center;flex:none}
+.rn span{width:46px;height:46px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font:700 21px var(--font-head)}
+
+.xbar{border-radius:12px;box-shadow:var(--shadow)}
+.prog{flex:1 0 100%;height:6px;border-radius:99px;background:var(--accent-soft);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--c-Ovid));transition:width .25s}
+.part{color:var(--ink);font-size:13px}
+.part::before{content:"";width:11px;height:11px;border-radius:50%;background:var(--sc);flex:none}
+.q .qh b::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--sc,var(--line));margin-right:8px}
+.opt{border-radius:10px}
+.opt:has(input:checked){box-shadow:0 0 0 1px var(--accent) inset}
+.blank{border-radius:6px 6px 0 0}
+.qn{border-radius:8px}
+
+.ring{width:148px;height:148px;border-radius:50%;background:conic-gradient(var(--good) calc(var(--p)*1%),var(--accent-soft) 0);display:grid;place-items:center;flex:none}
+.ring>div{width:118px;height:118px;border-radius:50%;background:var(--surface);display:grid;place-content:center;text-align:center}
+.ring .big{font-size:38px}
+.ring .big small{display:block;font-size:14px;margin-top:2px}
+.rev{border-left-width:6px}
+
+@media (max-width:900px){
+  .row{grid-template-columns:auto minmax(0,1fr)}
+  .row>:last-child{grid-column:1/-1}
+  .hero{padding:22px 18px 40px}
+  .hero h1{font-size:31px}
+}
+</style>
+
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+/* ============================ DATA ============================ */
+/* S(section, prompt, template lines, answers [alternates per blank], 3 wrong sets, tier, options)
+   Tier decides when a question turns from multiple choice into fill-in:
+   2 = years and names, 3 = single key terms, 4 = two-part or phrase answers, 5 = longest multi-blank items. */
+const S=(sec,p,t,b,d,tier,o)=>Object.assign({sec,p,t,b:b.map(a=>({a})),d,tier},o||{});
+const QS=[
+/* ---------- VIRGIL ---------- */
+S('Virgil','What are the dates of Virgil’s birth and death?',['Birth: _____ B.C.','Death: _____ B.C.'],[['70'],['19']],[['70','8'],['65','19'],['59','17']],2),
+S('Virgil','Name the two works that Virgil composed other than The Aeneid. ',['The _____. The _____.'],[['Bucolics','Eclogues'],['Georgics']],[['Metamorphoses','Fasti'],['Odes','Satires'],['Annals','Histories']],2,{g:[[0,1]]}),
+S('Virgil','Who commissioned Virgil to compose The Aeneid?',['_____ _____'],[['Caesar'],['Augustus']],[['Julius','Caesar'],['Marcus','Antonius'],['Gaius','Maecenas']],2,{joined:true}),
+S('Virgil','What are the reasons for this commission?',['To stimulate _____.','To _____ the Roman rule;','To justify the war against _____.'],[['patriotism'],['solidify','consolidate','strengthen','reinforce'],['Carthage']],[['religion','expand','Gaul'],['patriotism','overthrow','Carthage'],['pride','justify','Greece']],5),
+S('Virgil','Name the two works after which The Aeneid was patterned in the order.',['The Aeneid Part I: The _____.','The Aeneid Part II: The _____.'],[['Odyssey'],['Iliad']],[['Iliad','Odyssey'],['Theogony','Iliad'],['Odyssey','Metamorphoses']],2),
+S('Virgil','Compared to the individualistic hero in the Homeric epics, what kind of hero is Aeneas?',['The _____ hero.'],[['prototype','prototypical']],[['tragic'],['solitary'],['rebel']],3),
+S('Virgil','Name three Roman values that this hero emulates.',['_____.','Devotion to _____.','Self-_____.'],[['Off-spring','offspring','progeny','family'],['duty'],['sacrifice']],[['Wealth','honor','control'],['Off-spring','fate','denial'],['Conquest','duty','indulgence']],5),
+S('Virgil','What is the theme of The Aeneid?',['_____.'],[['Destiny','fate']],[['Vengeance'],['Homecoming'],['Wrath']],3),
+S('Virgil','When we look at the above theme from the human perspective, what does it become?',['_____.'],[['Mission']],[['Ambition'],['Wandering'],['Revenge']],3),
+S('Virgil','What Christian theological concept does the above resemble? ',['God\'s _____ and human _____ _____.'],[['sovereignty'],['free'],['will']],[['grace','total','depravity'],['wrath','original','sin'],['justice','natural','law']],5),
+S('Virgil','What are the two purposes that the gods gave Aeneas to accomplish? ',['To found a city: _____.','To found a race: _____.'],[['Rome'],['Latin','Latins']],[['Carthage','Phoenician'],['Troy','Trojan'],['Athens','Greek']],2),
+S('Virgil','What detracted Aeneas from accomplishing the above, as seen in the episode of Dido and Aeneas?',['_____.'],[['Love/Passion','love','passion','love and passion','love or passion']],[['Greed'],['Fear'],['Pride']],3),
+S('Virgil','What important aspect of the Roman government does the above threaten to break?',['The Roman _____.'],[['Law','laws']],[['Senate'],['Republic'],['Treasury']],3),
+S('Virgil','What is the name of the wars that took place between the Romans and Carthage because of Dido’s curse? ',['The _____ Wars.'],[['Punic']],[['Peloponnesian'],['Gallic'],['Trojan']],2),
+S('Virgil','As opposed to the value system of the Greeks that seek the individual good, what does the Roman value system seek? ',['The _____ good.'],[['collective','common','communal']],[['individual'],['divine'],['private']],3),
+S('Virgil','What Christian concept does this value resemble the most? (Hint: Romans 12:4ff.)',['The _____ of Christ.'],[['Body']],[['Blood'],['Kingdom'],['Bride']],3),
+/* ---------- OVID ---------- */
+S('Ovid','What are the dates of Ovid’s birth and death?',['Birth: _____ B.C.','Death: _____ A.D.'],[['43'],['17','18']],[['43','8'],['70','17'],['27','14']],2),
+S('Ovid','What one word describes the time in which Ovid lived?',['The time of _____.'],[['peace','pax romana']],[['war'],['decline'],['plague']],3),
+S('Ovid','Ovid was known as the poet of what?',['The poet of _____.'],[['love']],[['war'],['nature'],['tragedy']],3),
+S('Ovid','Who is the major English writer that was heavily influenced by Ovid?',['_____.'],[['Shakespeare','William Shakespeare']],[['Dickens'],['Orwell'],['Austen']],2),
+S('Ovid','What is the difference between the biblical metamorphosis (in Romans 12:2) and the Ovidian one? ',['Bible: the _____ stays the same, but the _____ changes.','Ovid: the _____ stays the same, but the _____ changes.'],[['outside','outer','exterior'],['inside','inner','interior'],['inside','inner','interior'],['outside','outer','exterior']],[['inside','outside','outside','inside'],['outside','inside','outside','inside'],['inside','outside','inside','outside']],5),
+S('Ovid','Name six styles that Ovid uses in composing The Metamorphoses. (Please complete the below words.)',['E_____','L_____','Dr_____','T_____','B_____','Di_____'],[['pic'],['yric'],['amatic','ama'],['ragedy','radgedy','ragic'],['ucolic'],['dactic']],[['pigram','yric','amatic','ragedy','allad','dactic'],['pic','yric','amatic','ale','ucolic','alogue'],['pode','yric','ama','ragedy','ucolic','thyramb']],5),
+S('Ovid','What is the main difference between the Ovidian and the Genesis account of creation?',['Ovid: the _____ existence of matter.','Bible: the creation ex _____.'],[['eternal','everlasting'],['nihilo']],[['temporary','nihilo'],['eternal','deo'],['random','materia']],4),
+S('Ovid','What doctrine of the soul did Pythagoras preach?',['_____ of the soul.'],[['Immutability and transmigration','immutability','transmigration','immortality and transmigration']],[['Resurrection'],['Mortality'],['Annihilation']],4),
+S('Ovid','Name the four characteristics of the Ovidian “nature.”',['_____','_____','Non-_____','Non-_____'],[['Cyclical','cyclic'],['Violent'],['tragic'],['moral']],[['Linear','Peaceful','tragic','moral'],['Cyclical','Violent','rational','divine'],['Cyclical','Peaceful','comic','moral']],5,{g:[[0,1],[2,3]]}),
+S('Ovid','In the Apollo and Daphne episode, love/passion (as symbolized in Cupid) overcomes what one aspect of the human attributes (that is symbolized in Apollo)?',['_____.'],[['Rationality','reason','rational','reasoning','logic']],[['Courage'],['Faith'],['Beauty']],3),
+S('Ovid','How does the episode of Iphis and Ianthe depict gender identity?',['Gender identity is hyper-_____ (i.e., it resides not in the body but in the substance).'],[['natural']],[['physical'],['biological'],['cultural']],3,{mt:['Gender identity is hyper-_____.']}),
+S('Ovid','What kind of contemporary mythology is reflected in the episode of Pygmalion?',['_____.'],[['Cyborg','cyborgs']],[['Vampire'],['Zombie'],['Alien']],3),
+/* ---------- AUGUSTINE ---------- */
+S('Augustine','What are the dates of Augustine’s birth and death?',['Birth: _____ A.D.','Death: _____ A.D.'],[['354','345'],['430']],[['384','430'],['354','410'],['313','397']],2,{note:'The answer key lists 345 for the birth year. Augustine was born in 354, so this page counts either one as correct.'}),
+S('Augustine','What was the condition of the Roman Empire during Augustine’s time?',['_____.'],[['Waning','declining','in decline','decline','falling','collapsing']],[['Flourishing'],['Expanding'],['Unified']],3),
+S('Augustine','What did Augustine study and teach?',['_____.'],[['Rhetoric']],[['Law'],['Medicine'],['Mathematics']],3),
+S('Augustine','What kind of doctrine did Manichaeism teach?',['A _____ worldview.','_____.'],[['dualistic','dualist','dual'],['Extreme asceticism','asceticism','ascetic']],[['monistic','Extreme asceticism'],['dualistic','Extreme hedonism'],['polytheistic','Strict ritualism']],4),
+S('Augustine','What is the name of the heresy, against which Augustine fought, that taught that humans are born sinless?',['_____.'],[['Pelagianism','Pelagian']],[['Donatism'],['Arianism'],['Gnosticism']],3),
+S('Augustine','In contrast, Augustine taught that humans are born what?',['Humans are born both _____ and _____.'],[['sinful'],['guilty']],[['sinless','neutral'],['sinful','innocent'],['good','corrupt']],4,{g:[[0,1]]}),
+S('Augustine','What is the name of the other heresy (which proclaimed that the sacraments administered by a clergy living in sin were ineffective) against which Augustine fought?',['_____.'],[['Donatism','Donatist']],[['Pelagianism'],['Arianism'],['Gnosticism']],3),
+S('Augustine','What is the name of Augustine’s eschatological view (i.e., a form of millennialism) expressed in The City of God?',['_____.'],[['Amillennialism','Amillennial','A-millennialism']],[['Premillennialism'],['Postmillennialism'],['Dispensationalism']],3),
+S('Augustine','In terms of a literary work, Augustine’s Confessions is regarded as the first what?',['It is the first _____.'],[['autobiography']],[['novel'],['biography'],['diary']],3),
+S('Augustine','What is the nature of the original sin as revealed in Augustine’s “pear tree” incident?',['Sinning for the sake of sinning or _____ sin.'],[['autotelic']],[['original'],['venial'],['mortal']],3),
+S('Augustine','What is the difference between Eve’s and Adam’s sin?',['Eve\'s sin was caused by _____ and _____, but Adam\'s sin had _____ cause.'],[['lust'],['deception','deceit'],['no']],[['pride','envy','no'],['lust','deception','a divine'],['hunger','deception','an external']],5,{g:[[0,1]]}),
+S('Augustine','Name the three “God substitutes” in which Augustine indulged.',['_____','_____','_____'],[['In love with love','love','being in love with love'],['Knowledge','learning'],['Plays','theater','theatre','drama','stage plays','the theater']],[['Wealth','Fame','Power'],['In love with love','Wealth','Wine'],['Political power','Knowledge','Music']],5,{g:[[0,1,2]]}),
+S('Augustine','What is the name of the ancient Greek philosopher that influenced Augustine even after his conversion?',['_____.'],[['Plato']],[['Aristotle'],['Socrates'],['Epicurus']],2),
+S('Augustine','What was the condition of Augustine’s soul just before his conversion?',['His soul was in _____.'],[['anguish','agony','torment','turmoil','distress','anxiety']],[['peace'],['ecstasy'],['indifference']],3),
+S('Augustine','What was the direct instrument of Augustine’s conversion?',['The _____.'],[['Scriptures','Scripture','Bible','Holy Scriptures']],[['Sermons'],['Philosophers'],['Vision']],3),
+S('Augustine','What was the indirect instrument of Augustine’s conversion?',['The voice of _____ saying, "Take and _____."'],[['a child','child','the child'],['read']],[['an angel','read'],['a child','pray'],['a priest','eat']],4),
+/* ---------- DANTE ---------- */
+S('Dante','What are the dates of Dante’s birth and death?',['Birth: _____ A.D.','Death: _____ A.D.'],[['1265'],['1321']],[['1256','1321'],['1265','1374'],['1304','1374']],2),
+S('Dante','The Divine Comedy can be said to be the most complete expression of what in the medieval era?',['Theological, _____, philosophical, and _____ thought.'],[['political'],['scientific']],[['artistic','economic'],['musical','military'],['historical','mathematical']],4,{g:[[0,1]]}),
+S('Dante','Give the two reasons The Divine Comedy is called “comedy.”',['It has a _____ ending.','It uses a variety of _____.'],[['happy'],['stylistic conventions','styles','literary styles','stylistic devices','conventions']],[['tragic','stylistic conventions'],['happy','languages'],['comic','meters']],4),
+S('Dante','What is the key number in understanding The Divine Comedy?',['_____'],[['3','three']],[['7'],['10'],['12']],2),
+S('Dante','What is the principle of symbolic retribution?',['The punishment _____ to the crime on a _____ level.'],[['corresponds','corresponding','matches','fits'],['symbolic','symbolical']],[['is identical','literal'],['corresponds','physical'],['is opposite','moral']],4),
+S('Dante','Virgil is the figure of what in The Inferno?',['He is the figure of _____.'],[['reason','human reason','rationality']],[['faith'],['love'],['revelation']],3),
+S('Dante','What is the name of the group of people found in the Limbo (a place in hell without suffering)?',['They are called _____ _____.'],[['virtuous'],['pagans','pagan']],[['fallen','angels'],['wicked','kings'],['lost','souls']],4,{joined:true}),
+S('Dante','Dante’s love for Beatrice Portinari shows what kind of dichotomy in medieval thought? ',['The _____/_____ dichotomy.'],[['mind','soul','spirit'],['body','flesh']],[['faith','reason'],['church','state'],['heaven','earth']],4,{g:[[0,1]]}),
+S('Dante','Dante defines lust as desire without what?',['Desire without _____.'],[['reason','rationality']],[['love'],['faith'],['shame']],3),
+S('Dante','What did the Epicureans deny?',['The Epicureans denied _____ of the soul.'],[['immortality']],[['existence'],['purity'],['salvation']],3),
+S('Dante','What is the name of this doctrine?',['_____.'],[['Annihilationism','annihilation','mortalism']],[['Stoicism'],['Determinism'],['Nihilism']],3),
+S('Dante','What did they consider as the highest good?',['They considered the highest good is _____ pleasure.'],[['temporal','temporary','earthly','physical']],[['spiritual'],['eternal'],['intellectual']],3),
+S('Dante','What is the name of this doctrine?',['_____.'],[['Hedonism']],[['Stoicism'],['Asceticism'],['Utilitarianism']],3),
+S('Dante','What is the worst crime/sin in medieval theology?',['_____.'],[['Betrayal','treachery','treason']],[['Lust'],['Murder'],['Pride']],3),
+S('Dante','Which principle of logic does the above violate?',['It violates the law of _____.'],[['non-contradiction']],[['identity'],['excluded middle'],['sufficient reason']],3),
+S('Dante','In The Inferno, Satan is trapped in his own evil. What kind of logical paradox does this represent?',['_____ paradox.'],[['Self-referential','self referential']],[['Zeno\'s'],['Sorites'],['Omnipotence']],3),
+S('Dante','In what two ways does medieval theology deny the doctrine of total depravity?',['The _____ is not corrupt.','The _____ is good.'],[['human will','will'],['human reason','reason']],[['human heart','human soul'],['human reason','human will'],['human body','human mind']],4)
+];
+const SECTIONS=['Virgil','Ovid','Augustine','Dante'];
+const SECTION_TITLE={Virgil:'Virgil, The Aeneid',Ovid:'Ovid, The Metamorphoses',Augustine:'Augustine, Confessions and The City of God',Dante:'Dante, The Divine Comedy'};
+const EXAMS=[
+ {n:1,name:'Recognition',tier:0,desc:'Every question is multiple choice.'},
+ {n:2,name:'Dates and Names',tier:2,desc:'Years and names become fill-in. Everything else stays multiple choice.'},
+ {n:3,name:'Key Terms',tier:3,desc:'Adds one-word key terms to the fill-in questions.'},
+ {n:4,name:'Concepts',tier:4,desc:'Adds two-part and phrase answers. Only the eight longest questions stay multiple choice.'},
+ {n:5,name:'Full Recall',tier:5,desc:'Every blank is fill-in. No answer choices at all.'}
+];
+/* prepare: ids and prefixes (letters typed right before a blank, such as the E in E_____) */
+QS.forEach((q,i)=>{q.id=i+1;let k=0;q.t.forEach(line=>{const sg=line.split('_____');for(let j=0;j<sg.length-1;j++){const m=sg[j].match(/[A-Za-z]+-?$/);q.b[k].pre=m?m[0]:'';k++}})});
+EXAMS.forEach(e=>{e.fill=QS.filter(q=>q.tier<=e.tier).length;e.mc=QS.length-e.fill});
+const isFill=(q,ex)=>q.tier<=ex.tier;
+
+/* ============================ GRADING ============================ */
+const norm=s=>String(s==null?'':s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').trim().replace(/^(the|a|an)\s+/,'').replace(/[^a-z0-9]/g,'');
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c}return p[n]}
+function matchBlank(input,bl){
+  const n=norm(input);if(!n)return false;
+  const cands=bl.a.concat(bl.pre?bl.a.map(x=>bl.pre+x):[]);
+  const numeric=/^\d+$/.test(bl.a[0]);
+  if(numeric){const d=String(input).replace(/\D/g,'');if(d&&bl.a.some(x=>x===d))return true}
+  return cands.some(c=>{const nc=norm(c);if(n===nc)return true;if(numeric||/^\d+$/.test(nc))return false;const tol=nc.length>=12?2:nc.length>=6?1:0;return tol>0&&lev(n,nc)<=tol})
+}
+function perms(a){if(a.length<=1)return[a.slice()];const r=[];a.forEach((x,i)=>perms(a.slice(0,i).concat(a.slice(i+1))).forEach(p=>r.push([x].concat(p))));return r}
+function gradeFill(q,ans){
+  const res=q.b.map((bl,i)=>matchBlank(ans[i]||'',bl));
+  (q.g||[]).forEach(g=>{let best=-1,bp=null;perms(g).forEach(p=>{const c=g.reduce((s,i,k)=>s+(matchBlank(ans[i]||'',q.b[p[k]])?1:0),0);if(c>best){best=c;bp=p}});g.forEach((i,k)=>{res[i]=matchBlank(ans[i]||'',q.b[bp[k]])})});
+  if(q.joined&&ans[0]&&!(ans[1]||'').trim()){const n=norm(ans[0]);if(n===norm(q.b[0].a[0]+q.b[1].a[0]))return[true,true]}
+  return res
+}
+function gradeQ(q,ex,ans){
+  if(isFill(q,ex)){const a=Array.isArray(ans)?ans:[];const bl=gradeFill(q,a);const c=bl.filter(Boolean).length;return{fill:true,blanks:bl,pts:c/bl.length,answered:a.some(x=>(x||'').trim())}}
+  return{fill:false,pts:ans===0?1:0,chosen:ans,answered:typeof ans==='number'}
+}
+
+/* ============================ HELPERS ============================ */
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function fillLines(lines,vals){let k=0;return lines.map(l=>l.split('_____').reduce((o,seg,j,arr)=>o+seg+(j<arr.length-1?vals[k++]:''),''))}
+function optionText(q,vals,joinAs){const lines=fillLines(q.mt||q.t,vals);return joinAs?lines.join(' · '):lines.join('\n')}
+function mcJoinInline(q){return fillLines(q.mt||q.t,q.b.map(b=>b.a[0])).join('').length<=80}
+function keyText(q){return fillLines(q.t,q.b.map(b=>b.a[0])).join('\n')}
+const fmtTime=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60),r=s%60;return(h?h+':'+String(m).padStart(2,'0'):m)+':'+String(r).padStart(2,'0')};
+const fmtDate=t=>new Date(t).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+const pct=(a,b)=>Math.round(a/b*1000)/10;
+const num=x=>Number.isInteger(x)?String(x):(Math.round(x*100)/100).toString();
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
+/* ============================ STATE ============================ */
+const KEY='wl-exam2-prep-v1';
+let state={attempts:{},progress:{}};
+try{const s=JSON.parse(localStorage.getItem(KEY)||'null');if(s&&s.attempts&&s.progress)state=s}catch(e){}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const best=n=>{const a=state.attempts[n]||[];return a.length?Math.max(...a.map(x=>x.pct)):null};
+let view={name:'home'};   // home | detail | take | results
+let run=null, timerId=null, saveT=null;
+
+/* ============================ VIEWS ============================ */
+const root=document.getElementById('root');
+function rail(){
+  return `<aside class="rail"><a class="brand" href="#home"><span class="brand-t">World Literature I</span><span class="brand-s">Exam #2 practice</span></a>
+  <nav aria-label="Exams"><a href="#home" class="${view.name==='home'?'on':''}">All exams</a>
+  ${EXAMS.map(e=>{const b=best(e.n);const on=view.exam===e.n&&view.name!=='home';return `<a href="#exam-${e.n}" class="${on?'on':''}"><span>${e.n}. ${esc(e.name)}</span>${b!==null?`<span class="pill ${b>=90?'done':''}">${b}%</span>`:''}</a>`}).join('')}</nav></aside>`
+}
+function shell(inner){root.innerHTML=`<div class="app">${rail()}<main class="main"><div class="wrap">${inner}</div></main></div>`}
+
+function homeView(){
+  shell(`<section class="hero"><div class="crumbs">World Literature I</div>
+  <h1>Exam #2 Practice</h1>
+  <p>Five exams, each with the same ${QS.length} questions. Every exam takes away more answer choices than the last, until every blank is yours to fill.</p>
+  <div class="authors">${SECTIONS.map(s=>`<span class="au s-${s}"><i></i>${s} · ${QS.filter(q=>q.sec===s).length}</span>`).join('')}</div></section>
+  <div class="card list">${EXAMS.map(e=>{const b=best(e.n),n=(state.attempts[e.n]||[]).length,rs=state.progress[e.n];
+    return `<div class="row"><div class="rn" style="--p:${Math.round(e.fill/QS.length*360)}deg" role="img" aria-label="${Math.round(e.fill/QS.length*100)}% fill-in"><span>${e.n}</span></div><div><h3><a href="#exam-${e.n}">Exam ${e.n}: ${esc(e.name)}</a></h3>
+    <div class="meta">${QS.length} questions · ${QS.length} pts</div>
+    <div class="ladder"><span>${e.fill} fill-in (${Math.round(e.fill/QS.length*100)}%) · ${e.mc} multiple choice</span></div></div>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">${b!==null?`<span class="score-tag ${b>=90?'hi':''}">Best ${b}%</span>`:''}${rs?`<span class="score-tag">In progress</span>`:''}<a class="btn ${rs?'':'pri'}" href="#exam-${e.n}">${rs?'Resume':n?'Open':'Start'}</a></div></div>`}).join('')}</div>`)
+}
+
+function detailView(n){
+  const e=EXAMS[n-1],att=state.attempts[n]||[],rs=state.progress[n];
+  shell(`<div class="crumbs"><a href="#home">All exams</a> / Exam ${n}</div>
+  <h1 class="page-h">Exam ${n}: ${esc(e.name)}</h1>
+  <p class="lede">${esc(e.desc)}</p>
+  <div class="card detail">
+    <h2>Instructions</h2>
+    <p style="margin:0">Answer every question. Multiple choice questions have one correct answer. Fill-in questions keep the blanks from the original exam: type the missing word, name or year into each blank. Spelling is checked loosely, capital letters and punctuation do not matter, and where a blank starts with letters, you can type just the rest of the word or the whole word. Questions with several blanks give partial credit.</p>
+    <h2>Details</h2>
+    <dl class="facts"><dt>Questions</dt><dd>${QS.length} (${e.fill} fill-in, ${e.mc} multiple choice)</dd><dt>Points</dt><dd>${QS.length}</dd><dt>Time limit</dt><dd>None, your time is recorded</dd><dt>Attempts</dt><dd>Unlimited, ${att.length} so far</dd><dt>Best score</dt><dd>${best(n)!==null?best(n)+'%':'Not attempted'}</dd></dl>
+    ${rs?`<p class="callout">You have an unfinished attempt with ${Object.keys(rs.answers).length} of ${QS.length} questions touched. Resume to pick up where you left off.</p>`:''}
+    <div class="actions"><button class="btn pri" data-act="start" data-n="${n}">${rs?'Resume exam':att.length?'Take the exam again':'Take the exam'}</button>${rs?`<button class="btn" data-act="restart" data-n="${n}">Discard and start over</button>`:''}${att.length?`<button class="btn" data-act="review" data-n="${n}">Review latest attempt</button>`:''}</div>
+    ${att.length?`<h2>Attempts</h2><div class="scroll-x"><table class="tbl"><thead><tr><th>#</th><th>Date</th><th>Time</th><th>Score</th></tr></thead><tbody>${att.slice().reverse().map((a,i)=>`<tr><td>${att.length-i}</td><td>${fmtDate(a.date)}</td><td>${fmtTime(a.time)}</td><td>${num(a.score)} / ${QS.length} (${a.pct}%)</td></tr>`).join('')}</tbody></table></div>`:''}
+  </div>`)
+}
+
+/* ----- question markup ----- */
+function inputsHTML(q,vals,cls,ro){
+  let k=0;
+  return q.t.map(line=>{const sg=line.split('_____');const html=sg.map((seg,j)=>{let s=esc(seg);if(j<sg.length-1){const v=vals[k]||'';const c=cls?cls[k]:'';
+    s+=`${c?`<span class="mk ${c}" aria-hidden="true">${c==='ok'?'✓':'✗'}</span>`:''}<input type="text" class="blank ${c||''}" id="q${q.id}b${k}" data-q="${q.id}" data-b="${k}" value="${esc(v)}" style="width:${Math.max(9,v.length+2)}ch" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" aria-label="Question ${q.id}, blank ${k+1} of ${q.b.length}"${ro?' readonly tabindex="-1"':''}>`;k++}return s}).join('');return `<div class="tline">${html}</div>`}).join('')
+}
+function mcHTML(q,order,chosen,review){
+  const inl=mcJoinInline(q);
+  return `<div class="opts" role="radiogroup" aria-label="Question ${q.id} choices">${order.map(oi=>{
+    const vals=oi===0?q.b.map(b=>b.a[0]):q.d[oi-1];const txt=esc(optionText(q,vals,inl));
+    if(review){const ok=oi===0,pick=chosen===oi;return `<div class="opt static ${ok?'ok':pick?'bad':''}"><span>${txt}${ok?'<em>✓ Correct answer</em>':pick?'<em>✗ Your answer</em>':''}</span></div>`}
+    return `<label class="opt"><input type="radio" name="q${q.id}" value="${oi}" data-q="${q.id}"${chosen===oi?' checked':''}><span>${txt}</span></label>`}).join('')}</div>`
+}
+
+/* ----- take ----- */
+function newRun(n){
+  const order={};QS.forEach(q=>{if(!isFill(q,EXAMS[n-1]))order[q.id]=shuffle([0,1,2,3])});
+  return{n,answers:{},flags:{},order,base:0,t0:Date.now()}
+}
+function startExam(n,fresh){
+  if(fresh)delete state.progress[n];
+  const p=state.progress[n];
+  run=p?Object.assign({},p,{n,t0:Date.now()}):newRun(n);
+  view={name:'take',exam:n};renderTake();window.scrollTo(0,0)
+}
+const elapsed=()=>run.base+(Date.now()-run.t0);
+function persist(){if(!run)return;run.base=elapsed();run.t0=Date.now();state.progress[run.n]={answers:run.answers,flags:run.flags,order:run.order,base:run.base};save()}
+const answeredQ=q=>{const a=run.answers[q.id];return isFill(q,EXAMS[run.n-1])?Array.isArray(a)&&a.some(x=>(x||'').trim()):typeof a==='number'}
+function navHTML(){return `<div class="qnav">${QS.map(q=>`<button type="button" class="qn ${answeredQ(q)?'ans':''} ${run.flags[q.id]?'flag':''}" data-nav="${q.id}" aria-label="Go to question ${q.id}${answeredQ(q)?', answered':''}${run.flags[q.id]?', flagged':''}">${q.id}</button>`).join('')}</div>`}
+const legend=`<div class="legend"><span>Blue: answered</span><span>Orange corner: flagged</span></div>`;
+function renderTake(){
+  const e=EXAMS[run.n-1];let cur='';
+  const qh=QS.map(q=>{
+    let h='';if(q.sec!==cur){cur=q.sec;h+=`<div class="part s-${q.sec}">${esc(SECTION_TITLE[q.sec])}</div>`}
+    const fill=isFill(q,e),a=run.answers[q.id];
+    h+=`<section class="card q s-${q.sec}" id="q-${q.id}" aria-labelledby="qt-${q.id}"><div class="qh"><div><b id="qt-${q.id}">Question ${q.id}</b><span class="pts">1 pt</span></div><button type="button" class="flagbtn ${run.flags[q.id]?'on':''}" data-flag="${q.id}" aria-pressed="${!!run.flags[q.id]}">${run.flags[q.id]?'⚑ Flagged':'⚐ Flag'}</button></div>
+    <div class="qb"><p class="stem">${esc(q.p)}</p>${fill?inputsHTML(q,Array.isArray(a)?a:[],null,false):mcHTML(q,run.order[q.id],a,false)}</div></section>`;return h}).join('');
+  shell(`<div class="xbar"><h2>Exam ${run.n}: ${esc(e.name)}</h2><span class="xstat">Time <b id="timer">0:00</b></span><span class="xstat"><b id="cnt">0</b> of ${QS.length} answered</span><button class="btn pri" data-act="submit">Submit exam</button><div class="prog" aria-hidden="true"><i id="progfill"></i></div></div>
+  <div id="confirm" class="confirm" hidden></div>
+  <details class="card mobnav"><summary>Question navigator</summary>${navHTML()}${legend}</details>
+  <div class="xgrid"><div>${qh}<div class="actions"><button class="btn pri" data-act="submit">Submit exam</button></div></div>
+  <aside class="card side" aria-label="Question navigator"><h3>Questions</h3>${navHTML()}${legend}</aside></div>`);
+  refreshStatus();clearInterval(timerId);tick();timerId=setInterval(tick,1000)
+}
+function tick(){const t=document.getElementById('timer');if(t&&run)t.textContent=fmtTime(elapsed())}
+function refreshStatus(){
+  document.querySelectorAll('.qn').forEach(b=>{const q=QS[b.dataset.nav-1];b.classList.toggle('ans',answeredQ(q));b.classList.toggle('flag',!!run.flags[q.id])});
+  const done=QS.filter(answeredQ).length;
+  const c=document.getElementById('cnt');if(c)c.textContent=done;
+  const pf=document.getElementById('progfill');if(pf)pf.style.width=(done/QS.length*100)+'%'
+}
+function showConfirm(){
+  const un=QS.filter(q=>!answeredQ(q)),fl=Object.keys(run.flags).filter(k=>run.flags[k]).length;
+  const el=document.getElementById('confirm');
+  el.innerHTML=`<p><b>Ready to submit?</b> ${un.length?`${un.length} question${un.length>1?'s are':' is'} unanswered${un.length<=12?' (number'+(un.length>1?'s':'')+' '+un.map(q=>q.id).join(', ')+')':''}.`:'Every question has an answer.'}${fl?` ${fl} flagged.`:''} You cannot change answers after submitting.</p><button class="btn" data-act="cancel">Keep working</button><button class="btn pri" data-act="confirm">Submit now</button>`;
+  el.hidden=false
+}
+function submit(){
+  clearInterval(timerId);const e=EXAMS[run.n-1],time=elapsed();
+  const res=QS.map(q=>gradeQ(q,e,run.answers[q.id]));
+  const score=res.reduce((s,r)=>s+r.pts,0);
+  const att={date:Date.now(),time,score:Math.round(score*100)/100,pct:pct(score,QS.length),answers:run.answers,order:run.order};
+  (state.attempts[run.n]=state.attempts[run.n]||[]).push(att);
+  delete state.progress[run.n];save();
+  const n=run.n;run=null;showResults(n,att)
+}
+
+/* ----- results ----- */
+function showResults(n,att,filter){
+  view={name:'results',exam:n,att,filter:filter||'all'};const e=EXAMS[n-1];
+  const res=QS.map(q=>gradeQ(q,e,att.answers[q.id]));
+  const secs=SECTIONS.map(s=>{const idx=QS.map((q,i)=>q.sec===s?i:-1).filter(i=>i>=0);return{s,got:idx.reduce((a,i)=>a+res[i].pts,0),max:idx.length}});
+  const right=res.filter(r=>r.pts===1).length,part=res.filter(r=>r.pts>0&&r.pts<1).length,wrong=res.length-right-part;
+  const show=QS.filter((q,i)=>view.filter==='all'||res[i].pts<1);
+  shell(`<div class="crumbs"><a href="#home">All exams</a> / <a href="#exam-${n}">Exam ${n}</a> / Results</div>
+  <h1 class="page-h">Exam ${n}: ${esc(e.name)} results</h1>
+  <div class="card sum"><div style="display:flex;gap:20px;align-items:center;flex-wrap:wrap"><div class="ring" style="--p:${att.pct}" role="img" aria-label="${att.pct}% correct"><div><div class="big">${num(att.score)}<small>of ${QS.length}</small></div></div></div><div><div style="font:700 26px var(--font-head)">${att.pct}%</div><div class="meta" style="font-size:15px">${fmtTime(att.time)} taken</div><div class="meta">${right} correct, ${part} partial, ${wrong} incorrect</div></div></div>
+  <div class="secs">${secs.map(x=>`<div class="sec"><span>${x.s}</span><div class="bar"><i style="width:${x.got/x.max*100}%"></i></div><span>${num(x.got)} / ${x.max}</span></div>`).join('')}</div></div>
+  <div class="actions"><button class="btn pri" data-act="start" data-n="${n}" data-fresh="1">Retake Exam ${n}</button>${n<5?`<a class="btn" href="#exam-${n+1}">Next: Exam ${n+1}, ${esc(EXAMS[n].name)}</a>`:''}<a class="btn" href="#home">All exams</a></div>
+  <div class="filters" role="group" aria-label="Filter review"><button class="chip ${view.filter==='all'?'on':''}" data-filter="all">All questions (${QS.length})</button><button class="chip ${view.filter==='miss'?'on':''}" data-filter="miss">Missed or partial (${wrong+part})</button></div>
+  ${show.length?show.map(q=>{const r=res[q.id-1],a=att.answers[q.id];const st=r.pts===1?'ok':r.pts>0?'part2':'bad';const lab=r.pts===1?'Correct':r.pts>0?'Partial':r.answered?'Incorrect':'Unanswered';
+    const body=r.fill?inputsHTML(q,Array.isArray(a)?a:[],r.blanks.map(b=>b?'ok':'bad'),true)+(r.pts<1?`<div class="key"><b>Correct answer</b><div>${esc(keyText(q))}</div></div>`:''):mcHTML(q,att.order[q.id]||[0,1,2,3],a,true);
+    return `<section class="card q rev ${st} s-${q.sec}"><div class="qh"><div><b>Question ${q.id}</b><span class="pts">${num(r.pts)} / 1 pts</span></div><span class="status ${st}">${lab}</span></div><div class="qb"><p class="stem">${esc(q.p)}</p>${body}${q.note?`<div class="note">${esc(q.note)}</div>`:''}</div></section>`}).join(''):`<div class="card detail">Nothing missed. Every question scored in full.</div>`}`);
+  window.scrollTo(0,0)
+}
+
+/* ============================ EVENTS ============================ */
+root.addEventListener('input',ev=>{
+  const t=ev.target;if(!run||!t.classList.contains('blank'))return;
+  const q=+t.dataset.q,b=+t.dataset.b,qq=QS[q-1];
+  const arr=Array.isArray(run.answers[q])?run.answers[q]:(run.answers[q]=qq.b.map(()=>''));
+  arr[b]=t.value;t.style.width=Math.max(9,t.value.length+2)+'ch';
+  refreshStatus();clearTimeout(saveT);saveT=setTimeout(persist,400)
+});
+root.addEventListener('change',ev=>{
+  const t=ev.target;if(!run||t.type!=='radio')return;
+  run.answers[+t.dataset.q]=+t.value;refreshStatus();persist()
+});
+root.addEventListener('keydown',ev=>{
+  if(ev.key==='Enter'&&ev.target.classList&&ev.target.classList.contains('blank')&&run){
+    ev.preventDefault();const all=[...document.querySelectorAll('.blank')];const i=all.indexOf(ev.target);if(all[i+1])all[i+1].focus()
+  }
+});
+root.addEventListener('click',ev=>{
+  const el=ev.target.closest('[data-act],[data-flag],[data-nav],[data-filter]');if(!el)return;
+  if(el.dataset.flag&&run){const id=+el.dataset.flag;run.flags[id]=!run.flags[id];el.classList.toggle('on',run.flags[id]);el.setAttribute('aria-pressed',String(!!run.flags[id]));el.textContent=run.flags[id]?'⚑ Flagged':'⚐ Flag';refreshStatus();persist();return}
+  if(el.dataset.nav){const t=document.getElementById('q-'+el.dataset.nav);if(t){t.scrollIntoView({behavior:'smooth',block:'start'});const f=t.querySelector('input');if(f)setTimeout(()=>f.focus({preventScroll:true}),350)}return}
+  if(el.dataset.filter&&view.name==='results'){showResults(view.exam,view.att,el.dataset.filter);return}
+  const act=el.dataset.act;
+  if(act==='start')startExam(+el.dataset.n,!!el.dataset.fresh);
+  else if(act==='restart')startExam(+el.dataset.n,true);
+  else if(act==='review'){const a=state.attempts[+el.dataset.n];showResults(+el.dataset.n,a[a.length-1])}
+  else if(act==='submit')showConfirm();
+  else if(act==='cancel')document.getElementById('confirm').hidden=true;
+  else if(act==='confirm')submit()
+});
+function route(){
+  if(run){persist();clearInterval(timerId);run=null}
+  const h=location.hash.replace('#','');const m=h.match(/^exam-([1-5])$/);
+  if(m){view={name:'detail',exam:+m[1]};detailView(+m[1])}else{view={name:'home'};homeView()}
+  window.scrollTo(0,0)
+}
+window.addEventListener('hashchange',route);
+window.addEventListener('pagehide',()=>{if(run)persist()});
+route();
+</script>
+</body>
+</html>
